@@ -36,7 +36,12 @@ If your backend host/port differs, set `VITE_API_URL` in `frontend/.env` (e.g. `
 
 ### App behavior
 - Specialists list with title/subtitle showing available count.
-- Action bar: Filters modal (age, gender, price), Sort + Favorites placeholders.
-- Infinite scroll loads 10 at a time; pull-to-refresh supported.
+- Action bar: Filters modal (age, gender, price), working Sort (rating/price/age/name) and Favorites toggle with badge.
+- Favorites persist to `localStorage`; favorites-only view available.
+- Infinite scroll loads more as you scroll and respects current filters/sort; pull-to-refresh supported.
 - Error → toast; empty results → empty state with reset option.
 - JSON storage is created on demand if missing.
+
+### Type checking
+- Frontend type-only check: `cd frontend && npm run typecheck`
+- Backend type-only check: `cd backend && npm run typecheck`
