@@ -17,6 +17,8 @@ import {
   personCircleOutline
 } from 'ionicons/icons';
 import { Redirect, Route } from 'react-router-dom';
+import { useEffect } from 'react';
+import { Capacitor } from '@capacitor/core';
 import SpecialistsPage from './features/specialists/SpecialistsPage';
 import './App.css';
 
@@ -27,7 +29,7 @@ type PlaceholderProps = {
 
 const PlaceholderPage = ({ title, subtitle }: PlaceholderProps) => (
   <IonPage>
-    <IonContent>
+    <IonContent fullscreen>
       <div className="placeholder-card">
         <h2>{title}</h2>
         <p>{subtitle ?? 'Coming soon.'}</p>
@@ -80,6 +82,14 @@ const Tabs = () => (
 );
 
 function App() {
+  useEffect(() => {
+    if (Capacitor.isNativePlatform()) {
+      document.body.classList.add('native-platform');
+    } else {
+      document.body.classList.remove('native-platform');
+    }
+  }, []);
+
   return (
     <IonApp>
       <IonReactRouter>

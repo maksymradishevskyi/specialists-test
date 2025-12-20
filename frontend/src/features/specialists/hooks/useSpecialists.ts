@@ -103,7 +103,8 @@ export const useSpecialists = (filters: Filters, sortOption: SortOption): UseSpe
         });
         resetLimitRef.current = requestLimit;
       } catch {
-        // errors are handled via the RTK query error state
+        // Stop infinite scroll from retriggering while offline/unreachable
+        setHasMore(false);
       } finally {
         if (reset) {
           setIsInitialLoading(false);

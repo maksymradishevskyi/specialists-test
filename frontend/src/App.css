@@ -1,5 +1,7 @@
 ion-content {
   --background: #FFFFFF;
+  /* Global safe-area padding so headers clear the notch. */
+  --padding-top: calc(env(safe-area-inset-top, 0px) + 20px);
 }
 
 :root {
@@ -34,8 +36,20 @@ ion-list {
   --background: #ffffff;
   --color: #8a8a8a;
   --color-selected: #111111;
-  border-top: 1px solid #e6e8ed;
-  box-shadow: 0 -2px 8px rgba(0, 0, 0, 0.04);
+  border-top: none;
+  box-shadow: none;
+  /* Default desktop/web: flush to bottom. Native override below. */
+  padding-bottom: 0;
+  --padding-bottom: 0;
+  max-width: 375px;
+  width: 100%;
+  margin: 0 auto;
+}
+
+/* Native (Capacitor) only: raise above gesture bar. */
+.native-platform .bottom-tabbar {
+  padding-bottom: calc(env(safe-area-inset-bottom, 0px) + 20px);
+  --padding-bottom: calc(env(safe-area-inset-bottom, 0px) + 20px);
 }
 
 .bottom-tabbar ion-tab-button {
