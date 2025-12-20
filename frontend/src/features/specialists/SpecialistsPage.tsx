@@ -37,7 +37,6 @@ const SpecialistsPage = () => {
     specialists,
     hasMore,
     total,
-    isFetching,
     isInitialLoading,
     favoriteIds,
     toggleFavorite,
@@ -60,10 +59,11 @@ const SpecialistsPage = () => {
   );
 
   const subtitle = useMemo(() => {
+    if (error && specialists.length === 0) return 'Unable to load providers';
     if (total === null) return 'Loading providers...';
     const noun = total === 1 ? 'provider is' : 'providers are';
     return `${total} ${noun} currently available`;
-  }, [total]);
+  }, [error, specialists.length, total]);
 
   const showErrorToast = (message: string) => {
     setToastMessage(message);
@@ -122,7 +122,9 @@ const SpecialistsPage = () => {
     setFiltersOpen(true);
   };
 
-  const isEmpty = !isInitialLoading && visibleSpecialists.length === 0 && !showFavoritesOnly;
+  const isOfflineEmpty = !!error && !isInitialLoading && specialists.length === 0;
+  const isEmpty =
+    !isInitialLoading && !error && visibleSpecialists.length === 0 && !showFavoritesOnly;
   const isFavoritesEmpty =
     showFavoritesOnly && visibleSpecialists.length === 0 && !isInitialLoading;
 
@@ -153,6 +155,15 @@ const SpecialistsPage = () => {
             <div className="centered">
               <IonSpinner name="crescent" />
               <IonNote>Loading providers...</IonNote>
+            </div>
+          ) : isOfflineEmpty ? (
+            <div className="empty">
+              <IonIcon icon={peopleOutline} />
+              <h3>Unable to load providers</h3>
+              <p>Check your connection and try again.</p>
+              <IonButton onClick={() => refresh()} size="small">
+                Retry
+              </IonButton>
             </div>
           ) : isFavoritesEmpty ? (
             <div className="empty">

@@ -42,6 +42,48 @@ If your backend host/port differs, set `VITE_API_URL` in `frontend/.env` (e.g. `
 - Error → toast; empty results → empty state with reset option.
 - JSON storage is created on demand if missing.
 
+### Run in iOS Simulator with Capacitor
+Prereqs: Xcode + CLI tools installed. Backend must be running on your Mac.
+
+1) Set the API URL for the simulator (use your Mac’s LAN IP, not localhost):
+```
+cd frontend
+echo "VITE_API_URL=http://<your-mac-ip>:3000/" > .env
+```
+Find your IP with `ipconfig getifaddr en0` (Wi‑Fi) or `ipconfig getifaddr en1` (Ethernet).
+
+2) Build and sync web assets to iOS:
+```
+npm run build
+npx cap copy ios
+```
+Re-run these after frontend or `.env` changes.
+
+3) Open and run in Xcode:
+```
+npx cap open ios
+```
+In Xcode, select the `App` scheme and a simulator device (e.g., iPhone 15), then press Run (▶).
+
+Live reload in Simulator (Capacitor dev server)
+1) In `frontend/`, run the dev server so the simulator can reach it:
+```
+npm run dev -- --host --port 5173
+```
+2) Point Capacitor to your dev server (use your Mac’s LAN IP, not localhost) by editing `frontend/capacitor.config.ts`:
+```ts
+server: {
+  url: "http://<your-mac-ip>:5173",
+  cleartext: true,
+}
+```
+3) Sync and open iOS, then run:
+```
+npx cap sync ios
+npx cap open ios
+```
+Select a simulator and press Run. Changes served by Vite will show without rebuilding the native app. When you’re done, remove the `server.url` (or restore the original `server` block) and return to the bundled build flow (`npm run build && npx cap copy ios`).
+
 ### Type checking
 - Frontend type-only check: `cd frontend && npm run typecheck`
 - Backend type-only check: `cd backend && npm run typecheck`

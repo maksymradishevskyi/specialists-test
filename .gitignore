@@ -3,3 +3,10 @@ dist
 .npm-cache
 .DS_Store
 
+# iOS/Xcode build artifacts (keep native project tracked)
+ios/App/build
+ios/App/DerivedData
+ios/App/Pods
+*.xcuserstate
+xcuserdata
+
