@@ -10,17 +10,15 @@ import {
   IonTabs
 } from '@ionic/react';
 import { IonReactRouter } from '@ionic/react-router';
-import {
-  calendarOutline,
-  chatbubbleEllipsesOutline,
-  listOutline,
-  personCircleOutline
-} from 'ionicons/icons';
 import { Redirect, Route } from 'react-router-dom';
 import { useEffect } from 'react';
 import { Capacitor } from '@capacitor/core';
 import SpecialistsPage from './features/specialists/SpecialistsPage';
 import './App.css';
+import calendarFilled from './assets/calendar_filled.svg';
+import mindly from './assets/mindly.svg';
+import messageEmpty from './assets/message-empty.svg';
+import profileIcon from './assets/profile.png';
 
 type PlaceholderProps = {
   title: string;
@@ -29,7 +27,7 @@ type PlaceholderProps = {
 
 const PlaceholderPage = ({ title, subtitle }: PlaceholderProps) => (
   <IonPage>
-    <IonContent fullscreen>
+    <IonContent>
       <div className="placeholder-card">
         <h2>{title}</h2>
         <p>{subtitle ?? 'Coming soon.'}</p>
@@ -62,19 +60,19 @@ const Tabs = () => (
 
     <IonTabBar slot="bottom" className="bottom-tabbar">
       <IonTabButton tab="schedule" href="/tabs/schedule">
-        <IonIcon icon={calendarOutline} />
+        <IonIcon className="tab-icon" src={calendarFilled} />
         <IonLabel>Schedule</IonLabel>
       </IonTabButton>
       <IonTabButton tab="list" href="/tabs/specialists">
-        <IonIcon icon={listOutline} />
+        <IonIcon className="tab-icon" src={mindly} />
         <IonLabel>List</IonLabel>
       </IonTabButton>
       <IonTabButton tab="chat" href="/tabs/chat">
-        <IonIcon icon={chatbubbleEllipsesOutline} />
+        <IonIcon className="tab-icon" src={messageEmpty} />
         <IonLabel>Chat</IonLabel>
       </IonTabButton>
       <IonTabButton tab="profile" href="/tabs/profile">
-        <IonIcon icon={personCircleOutline} />
+        <img className="tab-icon tab-icon-img" src={profileIcon} alt="Profile icon" />
         <IonLabel>Profile</IonLabel>
       </IonTabButton>
     </IonTabBar>

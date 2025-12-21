@@ -17,11 +17,15 @@ ion-content {
   --color-background-anti-flash-white: #F5F7FA;
 }
 
+html,
 body,
 ion-app,
-ion-content {
+ion-content,
+#root,
+#background-content {
   font-family: var(--app-font);
   color: var(--primary-text);
+  background: #ffffff;
 }
 
 ion-toolbar {
@@ -34,15 +38,14 @@ ion-list {
 
 .bottom-tabbar {
   --background: #ffffff;
-  --color: #8a8a8a;
-  --color-selected: #111111;
+  --color: var(--tabbar-text-unselected);
+  --color-selected: var(--tabbar-text-selected);
   border-top: none;
   box-shadow: none;
-  /* Default desktop/web: flush to bottom. Native override below. */
   padding-bottom: 0;
   --padding-bottom: 0;
-  max-width: 375px;
-  width: 100%;
+  background: #ffffff;
+  width: 375px;
   margin: 0 auto;
 }
 
@@ -52,11 +55,61 @@ ion-list {
   --padding-bottom: calc(env(safe-area-inset-bottom, 0px) + 20px);
 }
 
+.bottom-tabbar::part(container) {
+  padding: 0;
+  width: 100%;
+  max-width: 375px;
+  margin: 0 auto;
+  display: flex;
+}
+
 .bottom-tabbar ion-tab-button {
   --padding-start: 8px;
   --padding-end: 8px;
+  color: var(--tabbar-text-unselected);
+  font-size: 10px;
+  font-weight: 500;
 }
 
+.bottom-tabbar ion-tab-button.tab-selected {
+  color: var(--tabbar-text-selected);
+}
+
+.bottom-tabbar ion-tab-button ion-label {
+  color: currentColor;
+  opacity: 0.45;
+  font-size: 10px;
+  line-height: 14px;
+}
+
+.bottom-tabbar ion-tab-button.tab-selected ion-label {
+  opacity: 1;
+}
+
+.tab-icon {
+  width: 24px;
+  height: 24px;
+  display: inline-block;
+  color: currentColor;
+  fill: currentColor;
+  stroke: currentColor;
+  opacity: 0.45;
+}
+
+.bottom-tabbar ion-tab-button.tab-selected .tab-icon {
+  opacity: 1;
+}
+
+.tab-icon-img {
+  width: 24px;
+  height: 24px;
+  object-fit: contain;
+  opacity: 0.45;
+}
+
+.bottom-tabbar ion-tab-button.tab-selected .tab-icon-img {
+  opacity: 1;
+}
 .placeholder-card {
   display: flex;
   flex-direction: column;

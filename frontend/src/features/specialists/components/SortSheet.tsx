@@ -1,10 +1,12 @@
 import { IonActionSheet } from '@ionic/react';
+import { checkmark } from 'ionicons/icons';
 import type { SortOption } from '../types';
 
 type SortSheetProps = {
   isOpen: boolean;
   onClose: () => void;
   onSelect: (option: SortOption) => void;
+  selected: SortOption;
 };
 
 const sortButtons: Array<{ text: string; option: SortOption }> = [
@@ -18,12 +20,16 @@ const sortButtons: Array<{ text: string; option: SortOption }> = [
   { text: 'Name (Z-A)', option: { sortBy: 'name', sortDirection: 'desc' } }
 ];
 
-const SortSheet = ({ isOpen, onClose, onSelect }: SortSheetProps) => (
+const SortSheet = ({ isOpen, onClose, onSelect, selected }: SortSheetProps) => (
   <IonActionSheet
     isOpen={isOpen}
     onDidDismiss={onClose}
     buttons={sortButtons.map(({ text, option }) => ({
       text,
+      icon:
+        option.sortBy === selected.sortBy && option.sortDirection === selected.sortDirection
+          ? checkmark
+          : undefined,
       handler: () => onSelect(option)
     }))}
     header="Sort specialists"

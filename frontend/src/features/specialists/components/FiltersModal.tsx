@@ -47,7 +47,7 @@ const FiltersModal = ({
   );
 
   return (
-    <IonModal isOpen={isOpen} onDidDismiss={onClose} className="filters-modal">
+    <IonModal isOpen={isOpen} onDidDismiss={onClose} className="filters-modal" mode="ios">
       <IonHeader>
         <IonToolbar className="filters-toolbar">
           <IonButton slot="start" fill="clear" className="filters-back" onClick={onClose}>
