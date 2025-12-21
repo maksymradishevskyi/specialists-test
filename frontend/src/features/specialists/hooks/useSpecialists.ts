@@ -1,8 +1,10 @@
-import { useCallback, useEffect, useRef, useState } from 'react';
+import { useCallback, useEffect, useState } from 'react';
 import { DEFAULT_LIMIT } from '../constants';
 import type { Filters, SortOption } from '../types';
 import type { Specialist } from '../specialistsApi';
 import { useLazyGetSpecialistsQuery } from '../specialistsApi';
+import { useAppDispatch, useAppSelector } from '../../../hooks';
+import { selectFavoriteIds, toggleFavorite as toggleFavoriteAction } from '../favoritesSlice';
 
 type UseSpecialistsResult = {
   specialists: Specialist[];
@@ -13,57 +15,29 @@ type UseSpecialistsResult = {
   favoriteIds: Set<string>;
   toggleFavorite: (id: string) => void;
   loadMore: () => Promise<void>;
-  refresh: (limitOverride?: number) => Promise<void>;
+  refresh: () => Promise<void>;
   error: unknown;
-  setNextResetLimit: (limit: number) => void;
 };
-
-const FAVORITES_KEY = 'specialist-favorites';
 
 export const useSpecialists = (filters: Filters, sortOption: SortOption): UseSpecialistsResult => {
   const [specialists, setSpecialists] = useState<Specialist[]>([]);
   const [hasMore, setHasMore] = useState(true);
   const [total, setTotal] = useState<number | null>(null);
   const [isInitialLoading, setIsInitialLoading] = useState(false);
-  const [favoriteIds, setFavoriteIds] = useState<Set<string>>(new Set());
-  const resetLimitRef = useRef<number | null>(null);
-  const currentCountRef = useRef(0);
 
   const [fetchSpecialists, { isFetching, error }] = useLazyGetSpecialistsQuery();
-
-  const persistFavorites = useCallback((ids: Set<string>) => {
-    localStorage.setItem(FAVORITES_KEY, JSON.stringify([...ids]));
-  }, []);
-
-  useEffect(() => {
-    const saved = localStorage.getItem(FAVORITES_KEY);
-    if (!saved) return;
-    try {
-      const parsed = JSON.parse(saved) as string[];
-      setFavoriteIds(new Set(parsed));
-    } catch {
-      // ignore malformed storage
-    }
-  }, []);
+  const dispatch = useAppDispatch();
+  const favoriteIds = useAppSelector(selectFavoriteIds);
 
   const toggleFavorite = useCallback(
     (id: string) => {
-      setFavoriteIds((prev) => {
-        const next = new Set(prev);
-        if (next.has(id)) {
-          next.delete(id);
-        } else {
-          next.add(id);
-        }
-        persistFavorites(next);
-        return next;
-      });
+      dispatch(toggleFavoriteAction(id));
     },
-    [persistFavorites]
+    [dispatch]
   );
 
   const loadPage = useCallback(
-    async (nextOffset: number, reset = false, limitOverride?: number) => {
+    async (nextOffset: number, reset = false) => {
       if (reset) {
         setIsInitialLoading(true);
         setHasMore(true);
@@ -71,8 +45,7 @@ export const useSpecialists = (filters: Filters, sortOption: SortOption): UseSpe
         setTotal(null);
       }
 
-      const requestLimit =
-        limitOverride ?? resetLimitRef.current ?? Math.max(currentCountRef.current, DEFAULT_LIMIT);
+      const requestLimit = DEFAULT_LIMIT;
 
       const genderParam =
         filters.genders && filters.genders.length === 1 ? filters.genders[0] : undefined;
@@ -94,14 +67,11 @@ export const useSpecialists = (filters: Filters, sortOption: SortOption): UseSpe
         setHasMore(data.hasMore);
         setSpecialists((prev) => {
           if (reset) {
-            currentCountRef.current = data.items.length;
             return data.items;
           }
           const merged = [...prev, ...data.items];
-          currentCountRef.current = merged.length;
           return merged;
         });
-        resetLimitRef.current = requestLimit;
       } catch {
         // Stop infinite scroll from retriggering while offline/unreachable
         setHasMore(false);
@@ -119,15 +89,11 @@ export const useSpecialists = (filters: Filters, sortOption: SortOption): UseSpe
   }, [loadPage]);
 
   const refresh = useCallback(
-    async (limitOverride?: number) => {
-      await loadPage(0, true, limitOverride);
+    async () => {
+      await loadPage(0, true);
     },
     [loadPage]
   );
-
-  const setNextResetLimit = useCallback((limit: number) => {
-    resetLimitRef.current = limit;
-  }, [loadPage]);
 
   const loadMore = useCallback(async () => {
     if (!hasMore || isFetching) return;
@@ -144,8 +110,7 @@ export const useSpecialists = (filters: Filters, sortOption: SortOption): UseSpe
     toggleFavorite,
     loadMore,
     refresh,
-    error,
-    setNextResetLimit
+    error
   };
 };
 

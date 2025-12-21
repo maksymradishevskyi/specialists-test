@@ -2,6 +2,7 @@ import { promises as fs } from 'fs';
 import { dirname, join } from 'path';
 import { BadRequestException, Injectable } from '@nestjs/common';
 import { GetSpecialistsQueryDto } from './dto/get-specialists.dto';
+import { GetFavoritesQueryDto } from './dto/get-favorites.dto';
 import { Specialist } from './specialist.entity';
 
 interface SpecialistsFile {
@@ -118,6 +119,30 @@ export class SpecialistsService {
     const data = await this.readFile();
     const hydrated = data.specialists.map((s, idx) => this.hydrateSpecialist(s, idx));
     const filtered = this.applyFilters(hydrated, query);
+    const sorted = this.applySorting(filtered, query.sortBy, query.sortDirection ?? 'desc');
+
+    const limit = 10;
+    const offset = query.offset ?? 0;
+
+    const items = sorted.slice(offset, offset + limit);
+    const total = sorted.length;
+    const hasMore = offset + limit < total;
+
+    return { items, total, hasMore };
+  }
+
+  async listFavorites(query: GetFavoritesQueryDto): Promise<SpecialistListResponse> {
+    const ids = query.ids ?? [];
+    if (ids.length === 0) {
+      return { items: [], total: 0, hasMore: false };
+    }
+
+    const idSet = new Set(ids);
+    const data = await this.readFile();
+    const hydrated = data.specialists.map((s, idx) => this.hydrateSpecialist(s, idx));
+    const favoritesOnly = hydrated.filter((s) => idSet.has(s.id));
+
+    const filtered = this.applyFilters(favoritesOnly, query);
     const sorted = this.applySorting(filtered, query.sortBy, query.sortDirection ?? 'desc');
 
     const limit = 10;

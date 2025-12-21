@@ -1,9 +1,10 @@
 import { setupIonicReact } from '@ionic/react';
 import { StrictMode } from 'react';
 import { createRoot } from 'react-dom/client';
+import { PersistGate } from 'redux-persist/integration/react';
 import { Provider } from 'react-redux';
 import App from './App.tsx';
-import { store } from './store';
+import { persistor, store } from './store';
 
 // Ionic core and basic styles
 import '@ionic/react/css/core.css';
@@ -24,7 +25,9 @@ setupIonicReact();
 createRoot(document.getElementById('root')!).render(
   <StrictMode>
     <Provider store={store}>
-      <App />
+      <PersistGate loading={null} persistor={persistor}>
+        <App />
+      </PersistGate>
     </Provider>
   </StrictMode>
 );

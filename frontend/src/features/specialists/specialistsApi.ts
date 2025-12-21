@@ -38,6 +38,10 @@ export interface SpecialistsQuery {
   sortDirection?: 'asc' | 'desc';
 }
 
+export interface FavoritesQuery extends SpecialistsQuery {
+  ids?: string[];
+}
+
 const baseUrl = import.meta.env.VITE_API_URL ?? 'http://localhost:3000/';
 
 export const specialistsApi = createApi({
@@ -57,9 +61,15 @@ export const specialistsApi = createApi({
               { type: 'Specialists' as const, id: 'LIST' }
             ]
           : [{ type: 'Specialists' as const, id: 'LIST' }]
+    }),
+    getFavorites: builder.query<SpecialistsResponse, FavoritesQuery>({
+      query: (params) => ({
+        url: 'specialists/favorites',
+        params
+      })
     })
   })
 });
 
-export const { useLazyGetSpecialistsQuery } = specialistsApi;
+export const { useLazyGetSpecialistsQuery, useLazyGetFavoritesQuery } = specialistsApi;
 

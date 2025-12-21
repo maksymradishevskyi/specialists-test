@@ -20,6 +20,7 @@ import HeaderActions from './components/HeaderActions';
 import SpecialistCard from './components/SpecialistCard';
 import SortSheet from './components/SortSheet';
 import { defaultSort, emptyFilters } from './constants';
+import { useFavorites } from './hooks/useFavorites';
 import { useSpecialists } from './hooks/useSpecialists';
 import './specialists.css';
 import type { Filters, SortOption } from './types';
@@ -42,9 +43,10 @@ const SpecialistsPage = () => {
     toggleFavorite,
     loadMore,
     refresh,
-    error,
-    setNextResetLimit
+    error
   } = useSpecialists(filters, sortOption);
+
+  const favoriteIdsArray = useMemo(() => Array.from(favoriteIds), [favoriteIds]);
 
   const activeFiltersCount = useMemo(
     () =>
@@ -58,43 +60,70 @@ const SpecialistsPage = () => {
     [filters]
   );
 
+  const enableFavoritesData = showFavoritesOnly || activeFiltersCount > 0;
+
+  const {
+    favorites,
+    hasMore: favoritesHasMore,
+    total: favoritesTotal,
+    isInitialLoading: favoritesInitialLoading,
+    error: favoritesError,
+    loadMore: loadMoreFavorites,
+    refresh: refreshFavorites
+  } = useFavorites(filters, sortOption, favoriteIdsArray, enableFavoritesData);
+
+  const visibleSpecialists = useMemo(
+    () => (showFavoritesOnly ? favorites : specialists),
+    [favorites, showFavoritesOnly, specialists]
+  );
+
+  const usingFavorites = showFavoritesOnly;
+
+  const listError = usingFavorites ? favoritesError : error;
+  const listTotal = usingFavorites ? favoritesTotal : total;
+  const listIsInitialLoading = usingFavorites ? favoritesInitialLoading : isInitialLoading;
+  const listHasMore = usingFavorites ? favoritesHasMore : hasMore;
+
   const subtitle = useMemo(() => {
-    if (error && specialists.length === 0) return 'Unable to load providers';
-    if (total === null) return 'Loading providers...';
-    const noun = total === 1 ? 'provider is' : 'providers are';
-    return `${total} ${noun} currently available`;
-  }, [error, specialists.length, total]);
+    if (listError && visibleSpecialists.length === 0) return 'Unable to load providers';
+    if (listTotal === null) return 'Loading providers...';
+    const noun = listTotal === 1 ? 'provider is' : 'providers are';
+    return `${listTotal} ${noun} currently available`;
+  }, [listError, listTotal, visibleSpecialists.length]);
 
   const showErrorToast = (message: string) => {
     setToastMessage(message);
   };
 
   useEffect(() => {
-    if (error) {
+    if (listError) {
       showErrorToast('Request failed. Check connection and retry.');
     }
-  }, [error]);
+  }, [listError]);
 
-  const visibleSpecialists = useMemo(
-    () => (showFavoritesOnly ? specialists.filter((s) => favoriteIds.has(s.id)) : specialists),
-    [favoriteIds, showFavoritesOnly, specialists]
-  );
-
-  const favoritesCount = useMemo(
-    () =>
-      activeFiltersCount > 0
-        ? specialists.filter((s) => favoriteIds.has(s.id)).length
-        : favoriteIds.size,
-    [activeFiltersCount, favoriteIds, specialists]
-  );
+  const favoritesCount = useMemo(() => {
+    if (enableFavoritesData) {
+      if (favoritesTotal !== null) return favoritesTotal;
+      return favorites.length;
+    }
+    return favoriteIds.size;
+  }, [enableFavoritesData, favoriteIds.size, favorites.length, favoritesTotal]);
 
   const handleRefresh = async (event: CustomEvent<RefresherEventDetail>) => {
-    await refresh();
+    if (usingFavorites) {
+      await refreshFavorites();
+    } else {
+      await refresh();
+    }
     event.detail.complete();
   };
 
   const handleLoadMore = async (event: InfiniteScrollCustomEvent) => {
-    await loadMore();
+    if (usingFavorites) {
+      await loadMoreFavorites();
+    } else {
+      await loadMore();
+    }
     event.target.complete();
   };
 
@@ -122,11 +151,11 @@ const SpecialistsPage = () => {
     setFiltersOpen(true);
   };
 
-  const isOfflineEmpty = !!error && !isInitialLoading && specialists.length === 0;
+  const isOfflineEmpty = !!listError && !listIsInitialLoading && visibleSpecialists.length === 0;
   const isEmpty =
-    !isInitialLoading && !error && visibleSpecialists.length === 0 && !showFavoritesOnly;
+    !listIsInitialLoading && !listError && visibleSpecialists.length === 0 && !showFavoritesOnly;
   const isFavoritesEmpty =
-    showFavoritesOnly && visibleSpecialists.length === 0 && !isInitialLoading;
+    showFavoritesOnly && visibleSpecialists.length === 0 && !listIsInitialLoading;
 
   return (
     <IonPage>
@@ -151,7 +180,7 @@ const SpecialistsPage = () => {
             />
           </header>
 
-          {isInitialLoading ? (
+          {listIsInitialLoading ? (
             <div className="centered">
               <IonSpinner name="crescent" />
               <IonNote>Loading providers...</IonNote>
@@ -196,7 +225,7 @@ const SpecialistsPage = () => {
                 ))}
               </div>
 
-              {!hasMore && specialists.length > 0 && (
+              {!listHasMore && visibleSpecialists.length > 0 && (
                 <IonText color="medium" className="end-of-list">
                   End of results
                 </IonText>
@@ -208,7 +237,7 @@ const SpecialistsPage = () => {
         <IonInfiniteScroll
           onIonInfinite={handleLoadMore}
           threshold="120px"
-          disabled={!hasMore}
+          disabled={!listHasMore}
         >
           <IonInfiniteScrollContent loadingSpinner="crescent" loadingText="Loading more..." />
         </IonInfiniteScroll>
@@ -220,16 +249,15 @@ const SpecialistsPage = () => {
           onClose={() => setFiltersOpen(false)}
           onClear={resetFilters}
           onApply={applyFilters}
-          total={total}
-          specialistsLength={specialists.length}
+          total={listTotal}
+          specialistsLength={visibleSpecialists.length}
         />
 
         <SortSheet
           isOpen={isSortSheetOpen}
           onClose={() => setSortSheetOpen(false)}
+          selected={sortOption}
           onSelect={(option) => {
-            // keep current filtered count when re-sorting
-            setNextResetLimit(Math.max(specialists.length, 1));
             setSortOption(option);
             setSortSheetOpen(false);
           }}
