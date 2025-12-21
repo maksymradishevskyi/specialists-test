@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useState } from 'react';
+import { useCallback, useEffect, useMemo, useState } from 'react';
 import { DEFAULT_LIMIT } from '../constants';
 import type { Filters, SortOption } from '../types';
 import type { Specialist } from '../specialistsApi';
@@ -28,6 +28,7 @@ export const useSpecialists = (filters: Filters, sortOption: SortOption): UseSpe
   const [fetchSpecialists, { isFetching, error }] = useLazyGetSpecialistsQuery();
   const dispatch = useAppDispatch();
   const favoriteIds = useAppSelector(selectFavoriteIds);
+  const favoriteIdsSet = useMemo(() => new Set(favoriteIds), [favoriteIds]);
 
   const toggleFavorite = useCallback(
     (id: string) => {
@@ -106,7 +107,7 @@ export const useSpecialists = (filters: Filters, sortOption: SortOption): UseSpe
     total,
     isFetching,
     isInitialLoading,
-    favoriteIds,
+    favoriteIds: favoriteIdsSet,
     toggleFavorite,
     loadMore,
     refresh,

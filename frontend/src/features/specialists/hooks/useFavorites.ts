@@ -84,6 +84,9 @@ export const useFavorites = (
           if (reset) return data.items;
           return [...prev, ...data.items];
         });
+      } catch {
+        // Stop infinite scroll retries when offline/unreachable
+        setHasMore(false);
       } finally {
         if (reset) {
           setIsInitialLoading(false);

@@ -44,8 +44,8 @@ const favoritesSlice = createSlice({
 export const { toggleFavorite, hydrateFavorites } = favoritesSlice.actions;
 export const favoritesReducer = favoritesSlice.reducer;
 
-export const selectFavoriteIds = (state: { favorites: FavoritesState }): Set<string> =>
-  new Set(state.favorites.ids);
+export const selectFavoriteIds = (state: { favorites: FavoritesState }): string[] =>
+  state.favorites.ids;
 
 export { FAVORITES_KEY };
 

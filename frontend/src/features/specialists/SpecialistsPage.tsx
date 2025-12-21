@@ -60,7 +60,7 @@ const SpecialistsPage = () => {
     [filters]
   );
 
-  const enableFavoritesData = showFavoritesOnly || activeFiltersCount > 0;
+  const enableFavoritesData = showFavoritesOnly;
 
   const {
     favorites,
